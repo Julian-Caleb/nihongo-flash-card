@@ -396,7 +396,7 @@
 
   <!-- Card -->
   <div class="card-scene">
-    <div class="card" id="card" onclick="flipCard()">
+    <div class="card" id="card" >
       <!-- Front -->
       <div class="card-face card-front">
         <div class="card-character" id="cardChar">あ</div>
@@ -423,7 +423,7 @@
       autocapitalize="none"
       spellcheck="false"
     />
-    <button class="check-btn" id="checkBtn" onclick="checkAnswer()">Check</button>
+    <button class="check-btn" id="checkBtn" >Check</button>
   </div>
 
   <!-- Feedback -->
@@ -431,20 +431,20 @@
 
   <!-- Nav -->
   <div class="nav-row">
-    <button class="nav-btn" onclick="prevCard()">
+    <button class="nav-btn" >
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
         <path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       Prev
     </button>
-    <button class="nav-btn" onclick="shuffleDeck()">
+    <button class="nav-btn" >
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
         <path d="M1 4h2.5a4 4 0 013.2 1.6L8 7m4-3l-1.5 1.5L12 7m0-3v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
         <path d="M13 10h-2.5a4 4 0 01-3.2-1.6L6 7m-5 3l1.5-1.5L1 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       Shuffle
     </button>
-    <button class="nav-btn primary" onclick="nextCard()">
+    <button class="nav-btn primary" >
       Next
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
         <path d="M5 2l5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -457,9 +457,9 @@
 <div class="mode-wrap">
   <div class="mode-label">deck</div>
   <div class="mode-pills" id="modePills">
-    <button class="mode-pill active" data-mode="all"    onclick="setMode('all')">All cards</button>
-    <button class="mode-pill"        data-mode="kana"   onclick="setMode('kana')">Kana only</button>
-    <button class="mode-pill"        data-mode="vocab"  onclick="setMode('vocab')">Vocab only</button>
+    <button class="mode-pill active" data-mode="all"    >All cards</button>
+    <button class="mode-pill"        data-mode="kana"   >Kana only</button>
+    <button class="mode-pill"        data-mode="vocab"  >Vocab only</button>
   </div>
 </div>
 
@@ -648,6 +648,21 @@ document.addEventListener("keydown", e => {
   }
   if (e.key === "ArrowRight") nextCard();
   if (e.key === "ArrowLeft")  prevCard();
+});
+
+// ── Wire up all event listeners (required for type="module" scope) ──
+document.getElementById("card").addEventListener("click", flipCard);
+document.getElementById("checkBtn").addEventListener("click", checkAnswer);
+
+document.querySelectorAll(".nav-btn").forEach(btn => {
+  const label = btn.textContent.trim();
+  if (label.startsWith("Prev"))    btn.addEventListener("click", prevCard);
+  if (label.startsWith("Shuffle")) btn.addEventListener("click", shuffleDeck);
+  if (label.startsWith("Next"))    btn.addEventListener("click", nextCard);
+});
+
+document.querySelectorAll(".mode-pill").forEach(pill => {
+  pill.addEventListener("click", () => setMode(pill.dataset.mode));
 });
 
 // ── Init ────────────────────────────────────────────────────────
