@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Japanese Flashcards</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Tokens ─────────────────────────────────────────────── */
+    :root {
+      --washi:       #F7F4EE;
+      --washi-dark:  #EDE8DF;
+      --shadow-line: #C8C2B8;
+      --ink:         #1C1C1E;
+      --ink-soft:    #4A4845;
+      --ink-ghost:   #9A9490;
+      --vermillion:  #B83232;
+      --vermillion-l:#D44040;
+      --sage:        #6B7C5C;
+      --card-h:      clamp(280px, 45vw, 400px);
+    }
+
+    /* ── Reset ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Base ───────────────────────────────────────────────── */
+    html { height: 100%; }
+    body {
+      min-height: 100%;
+      background: var(--washi);
+      color: var(--ink);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      /* Subtle washi paper grain via SVG noise */
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    header {
+      width: 100%;
+      max-width: 640px;
+      padding: 32px 24px 0;
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+    .header-title {
+      font-family: 'Noto Serif JP', serif;
+      font-size: clamp(1.1rem, 3vw, 1.35rem);
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      color: var(--ink);
+    }
+    .header-kanji {
+      font-family: 'Noto Serif JP', serif;
+      font-size: clamp(1.4rem, 4vw, 1.8rem);
+      font-weight: 300;
+      color: var(--vermillion);
+      line-height: 1;
+    }
+    .header-count {
+      margin-left: auto;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--ink-ghost);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ── Progress bar ───────────────────────────────────────── */
+    .progress-wrap {
+      width: 100%;
+      max-width: 640px;
+      padding: 12px 24px 0;
+    }
+    .progress-bar {
+      height: 2px;
+      background: var(--shadow-line);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--vermillion);
+      border-radius: 2px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+
+    /* ── Main ───────────────────────────────────────────────── */
+    main {
+      width: 100%;
+      max-width: 640px;
+      padding: 28px 24px 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    /* ── Type badge ─────────────────────────────────────────── */
+    .type-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 20px;
+      align-self: flex-start;
+      transition: background 0.25s, color 0.25s;
+    }
+    .type-badge.hiragana { background: #E8EFF5; color: #2D5986; }
+    .type-badge.katakana { background: #EDF0EC; color: #3A5C30; }
+    .type-badge.vocab    { background: #F5EBE8; color: #8C3020; }
+
+    /* ── Card scene ─────────────────────────────────────────── */
+    .card-scene {
+      width: 100%;
+      height: var(--card-h);
+      perspective: 900px;
+    }
+    .card {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.55s cubic-bezier(0.4, 0.0, 0.2, 1);
+      cursor: pointer;
+    }
+    .card.flipped { transform: rotateY(180deg); }
+
+    .card-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+      /* Paper card feel: subtle border + layered shadow */
+      background: #FDFCF9;
+      border: 1px solid var(--shadow-line);
+      box-shadow:
+        0 1px 2px rgba(0,0,0,0.04),
+        0 4px 12px rgba(0,0,0,0.07),
+        0 12px 32px rgba(0,0,0,0.06),
+        inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+    .card-back {
+      transform: rotateY(180deg);
+    }
+
+    /* Front — character display */
+    .card-character {
+      font-family: 'Noto Serif JP', serif;
+      font-size: clamp(72px, 20vw, 120px);
+      font-weight: 300;
+      line-height: 1;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+      /* Ink bleed shadow, the signature element */
+      text-shadow:
+        1px 1px 0 rgba(0,0,0,0.06),
+        0 2px 8px rgba(0,0,0,0.08);
+      user-select: none;
+    }
+    .card-hint {
+      margin-top: 20px;
+      font-size: 0.75rem;
+      color: var(--ink-ghost);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* Back — answer */
+    .card-reading {
+      font-family: 'Inter', sans-serif;
+      font-size: clamp(2rem, 8vw, 3.2rem);
+      font-weight: 300;
+      color: var(--ink);
+      letter-spacing: 0.02em;
+      text-align: center;
+    }
+    .card-reading-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-ghost);
+      margin-bottom: 16px;
+    }
+    .card-alt-answers {
+      margin-top: 14px;
+      font-size: 0.85rem;
+      color: var(--ink-ghost);
+      text-align: center;
+      font-style: italic;
+    }
+
+    /* ── Input row ──────────────────────────────────────────── */
+    .input-row {
+      display: flex;
+      width: 100%;
+      gap: 10px;
+    }
+    .answer-input {
+      flex: 1;
+      height: 48px;
+      padding: 0 16px;
+      border: 1.5px solid var(--shadow-line);
+      border-radius: 8px;
+      background: #FDFCF9;
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .answer-input:focus {
+      border-color: var(--ink-soft);
+    }
+    .answer-input::placeholder { color: var(--ink-ghost); }
+
+    .answer-input.correct { border-color: var(--sage); background: #F0F4EE; }
+    .answer-input.wrong   { border-color: var(--vermillion); background: #FDF0EE; }
+
+    .check-btn {
+      height: 48px;
+      padding: 0 22px;
+      background: var(--ink);
+      color: var(--washi);
+      border: none;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      transition: background 0.15s, transform 0.1s;
+      white-space: nowrap;
+    }
+    .check-btn:hover  { background: var(--ink-soft); }
+    .check-btn:active { transform: scale(0.97); }
+
+    /* ── Feedback line ──────────────────────────────────────── */
+    .feedback {
+      min-height: 22px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      text-align: center;
+      transition: opacity 0.2s;
+    }
+    .feedback.correct { color: var(--sage); }
+    .feedback.wrong   { color: var(--vermillion); }
+    .feedback.hidden  { opacity: 0; }
+
+    /* ── Nav row ────────────────────────────────────────────── */
+    .nav-row {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+    }
+    .nav-btn {
+      flex: 1;
+      height: 44px;
+      background: transparent;
+      border: 1.5px solid var(--shadow-line);
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--ink-soft);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      letter-spacing: 0.02em;
+    }
+    .nav-btn:hover {
+      border-color: var(--ink-soft);
+      color: var(--ink);
+      background: var(--washi-dark);
+    }
+    .nav-btn svg { flex-shrink: 0; }
+    .nav-btn.primary {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: var(--washi);
+    }
+    .nav-btn.primary:hover {
+      background: var(--ink-soft);
+      border-color: var(--ink-soft);
+    }
+
+    /* ── Mode switcher ──────────────────────────────────────── */
+    .mode-wrap {
+      width: 100%;
+      max-width: 640px;
+      padding: 0 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .mode-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-ghost);
+    }
+    .mode-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .mode-pill {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1.5px solid var(--shadow-line);
+      background: transparent;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--ink-soft);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .mode-pill:hover { border-color: var(--ink-soft); color: var(--ink); }
+    .mode-pill.active {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: var(--washi);
+    }
+
+    /* ── Footer ─────────────────────────────────────────────── */
+    footer {
+      width: 100%;
+      max-width: 640px;
+      padding: 20px 24px 32px;
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--ink-ghost);
+      letter-spacing: 0.04em;
+    }
+    footer span { color: var(--vermillion); }
+
+    /* ── Reduced motion ─────────────────────────────────────── */
+    @media (prefers-reduced-motion: reduce) {
+      .card { transition: none; }
+      .progress-fill { transition: none; }
+    }
+
+    /* ── Mobile tweaks ──────────────────────────────────────── */
+    @media (max-width: 400px) {
+      header { padding: 20px 16px 0; }
+      main   { padding: 20px 16px 12px; }
+      .mode-wrap { padding: 0 16px; }
+      footer { padding: 16px 16px 24px; }
+      .check-btn { padding: 0 14px; font-size: 0.82rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <span class="header-kanji">日本語</span>
+  <span class="header-title">Flashcards</span>
+  <span class="header-count" id="headerCount">1 / 1</span>
+</header>
+
+<!-- ── Progress ── -->
+<div class="progress-wrap">
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+</div>
+
+<!-- ── Main ── -->
+<main>
+  <!-- Type badge -->
+  <div class="type-badge hiragana" id="typeBadge">Hiragana</div>
+
+  <!-- Card -->
+  <div class="card-scene">
+    <div class="card" id="card" onclick="flipCard()">
+      <!-- Front -->
+      <div class="card-face card-front">
+        <div class="card-character" id="cardChar">あ</div>
+        <div class="card-hint">tap to reveal</div>
+      </div>
+      <!-- Back -->
+      <div class="card-face card-back">
+        <div class="card-reading-label" id="backLabel">reading</div>
+        <div class="card-reading" id="cardAnswer">a</div>
+        <div class="card-alt-answers" id="cardAlt"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="input-row">
+    <input
+      class="answer-input"
+      id="answerInput"
+      type="text"
+      placeholder="type your answer…"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="none"
+      spellcheck="false"
+    />
+    <button class="check-btn" id="checkBtn" onclick="checkAnswer()">Check</button>
+  </div>
+
+  <!-- Feedback -->
+  <div class="feedback hidden" id="feedback"></div>
+
+  <!-- Nav -->
+  <div class="nav-row">
+    <button class="nav-btn" onclick="prevCard()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Prev
+    </button>
+    <button class="nav-btn" onclick="shuffleDeck()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M1 4h2.5a4 4 0 013.2 1.6L8 7m4-3l-1.5 1.5L12 7m0-3v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M13 10h-2.5a4 4 0 01-3.2-1.6L6 7m-5 3l1.5-1.5L1 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Shuffle
+    </button>
+    <button class="nav-btn primary" onclick="nextCard()">
+      Next
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M5 2l5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+</main>
+
+<!-- ── Mode switcher ── -->
+<div class="mode-wrap">
+  <div class="mode-label">deck</div>
+  <div class="mode-pills" id="modePills">
+    <button class="mode-pill active" data-mode="all"    onclick="setMode('all')">All cards</button>
+    <button class="mode-pill"        data-mode="kana"   onclick="setMode('kana')">Kana only</button>
+    <button class="mode-pill"        data-mode="vocab"  onclick="setMode('vocab')">Vocab only</button>
+  </div>
+</div>
+
+<footer>
+  Built for learning Japanese &nbsp;·&nbsp; <span>日本語</span>
+</footer>
+
+<script type="module">
+import { HIRAGANA, KATAKANA } from './kana_data.js';
+import { VOCAB } from './vocab_data.js';
+
+// ═══════════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════════
+
+let allCards   = [...HIRAGANA, ...KATAKANA, ...VOCAB];
+let deck       = [...allCards];
+let index      = 0;
+let isFlipped  = false;
+let currentMode = "all";
+
+// ═══════════════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════════════
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function deckForMode(mode) {
+  if (mode === "kana")  return [...HIRAGANA, ...KATAKANA];
+  if (mode === "vocab") return [...VOCAB];
+  return [...HIRAGANA, ...KATAKANA, ...VOCAB];
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════════════════════
+
+function applyCard() {
+  // Write new card content + reset visual state — called only when the
+  // card face is guaranteed to be front-facing (no ongoing flip animation).
+  const card = deck[index];
+  const cardEl = document.getElementById("card");
+
+  // Badge
+  const badge = document.getElementById("typeBadge");
+  const badgeText = { hiragana: "Hiragana", katakana: "Katakana", vocab: "Kata" };
+  badge.textContent = badgeText[card.type] || card.type;
+  badge.className = "type-badge " + card.type;
+
+  // Front
+  document.getElementById("cardChar").textContent = card.front;
+
+  // Back
+  document.getElementById("backLabel").textContent = card.label || "answer";
+  document.getElementById("cardAnswer").textContent = card.answers[0];
+  const alt = card.answers.slice(1);
+  document.getElementById("cardAlt").textContent =
+    alt.length ? "also: " + alt.join(", ") : "";
+
+  // Progress
+  const pct = deck.length > 1 ? (index / (deck.length - 1)) * 100 : 100;
+  document.getElementById("progressFill").style.width = pct + "%";
+  document.getElementById("headerCount").textContent =
+    (index + 1) + " / " + deck.length;
+
+  // Ensure card is face-up with no transition so the content swap is instant
+  cardEl.style.transition = "none";
+  cardEl.classList.remove("flipped");
+  isFlipped = false;
+  // Re-enable transition on next frame so future flips animate normally
+  requestAnimationFrame(() => { cardEl.style.transition = ""; });
+
+  clearInput();
+}
+
+function render() {
+  const cardEl = document.getElementById("card");
+
+  if (isFlipped) {
+    // Card is showing its back — flip it face-down first, then swap content
+    // once the flip animation (0.55s) completes so the user never sees the
+    // new answer mid-animation.
+    cardEl.classList.remove("flipped");
+    isFlipped = false;
+    setTimeout(applyCard, 560);
+  } else {
+    applyCard();
+  }
+}
+
+function clearInput() {
+  const input = document.getElementById("answerInput");
+  input.value = "";
+  input.className = "answer-input";
+  input.disabled = false;
+  const fb = document.getElementById("feedback");
+  fb.textContent = "";
+  fb.className = "feedback hidden";
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  INTERACTIONS
+// ═══════════════════════════════════════════════════════════════
+
+function flipCard() {
+  isFlipped = !isFlipped;
+  document.getElementById("card").classList.toggle("flipped", isFlipped);
+}
+
+function checkAnswer() {
+  const input   = document.getElementById("answerInput");
+  const fb      = document.getElementById("feedback");
+  const guess   = input.value.trim().toLowerCase();
+  if (!guess) return;
+
+  const card    = deck[index];
+  // Accept if guess matches ANY of the answers (case-insensitive, trimmed)
+  const correct = card.answers.some(a => a.trim().toLowerCase() === guess);
+
+  if (correct) {
+    input.className = "answer-input correct";
+    fb.textContent  = "Benar! ✓";
+    fb.className    = "feedback correct";
+    if (!isFlipped) flipCard();
+  } else {
+    input.className = "answer-input wrong";
+    const all = card.answers.join(" / ");
+    fb.textContent  = `Salah. Jawaban: ${all}`;
+    fb.className    = "feedback wrong";
+    if (!isFlipped) flipCard();
+  }
+}
+
+function nextCard() {
+  index = (index + 1) % deck.length;
+  render();
+  document.getElementById("answerInput").focus();
+}
+
+function prevCard() {
+  index = (index - 1 + deck.length) % deck.length;
+  render();
+}
+
+function shuffleDeck() {
+  shuffle(deck);
+  index = 0;
+  render();
+  document.getElementById("answerInput").focus();
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  // Update pill styles
+  document.querySelectorAll(".mode-pill").forEach(pill => {
+    pill.classList.toggle("active", pill.dataset.mode === mode);
+  });
+  deck  = shuffle(deckForMode(mode));
+  index = 0;
+  render();
+  document.getElementById("answerInput").focus();
+}
+
+// ── Keyboard shortcuts ──────────────────────────────────────────
+document.addEventListener("keydown", e => {
+  // Enter on input → check; Enter elsewhere → next
+  if (e.key === "Enter") {
+    const input = document.getElementById("answerInput");
+    if (document.activeElement === input) {
+      checkAnswer();
+    } else {
+      nextCard();
+    }
+    return;
+  }
+  if (e.key === " " && document.activeElement.tagName !== "INPUT") {
+    e.preventDefault();
+    flipCard();
+    return;
+  }
+  if (e.key === "ArrowRight") nextCard();
+  if (e.key === "ArrowLeft")  prevCard();
+});
+
+// ── Init ────────────────────────────────────────────────────────
+shuffle(deck);
+render();
+document.getElementById("answerInput").focus();
+</script>
+</body>
+</html>
