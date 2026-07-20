@@ -21,6 +21,7 @@
       --vermillion-l:#D44040;
       --sage:        #6B7C5C;
       --card-h:      clamp(280px, 45vw, 400px);
+      --char-scale:  1;
     }
 
     /* ── Reset ──────────────────────────────────────────────── */
@@ -162,11 +163,16 @@
     }
 
     /* Front — character display */
+    /* Box scales down as kana/vocab text grows longer, and always stays centered */
     .card-character {
       font-family: 'Noto Serif JP', serif;
-      font-size: clamp(72px, 20vw, 120px);
+      font-size: clamp(
+        28px,
+        calc(20vw / var(--char-scale, 1)),
+        calc(120px / var(--char-scale, 1))
+      );
       font-weight: 300;
-      line-height: 1;
+      line-height: 1.15;
       color: var(--ink);
       letter-spacing: -0.02em;
       /* Ink bleed shadow, the signature element */
@@ -174,6 +180,13 @@
         1px 1px 0 rgba(0,0,0,0.06),
         0 2px 8px rgba(0,0,0,0.08);
       user-select: none;
+      width: 100%;
+      max-width: 100%;
+      text-align: center;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+      white-space: normal;
+      transition: font-size 0.2s ease;
     }
     .card-hint {
       margin-top: 20px;
@@ -191,6 +204,7 @@
       color: var(--ink);
       letter-spacing: 0.02em;
       text-align: center;
+      width: 100%;
     }
     .card-reading-label {
       font-size: 0.72rem;
@@ -363,7 +377,7 @@
       .progress-fill { transition: none; }
     }
 
-    /* ── Mobile tweaks ──────────────────────────────────────── */
+    /* ── Mobile tweaks ─────────────────────────────────────── */
     @media (max-width: 400px) {
       header { padding: 20px 16px 0; }
       main   { padding: 20px 16px 12px; }
@@ -499,6 +513,15 @@ function deckForMode(mode) {
   return [...HIRAGANA, ...KATAKANA, ...VOCAB];
 }
 
+// Scale the character box down as the text gets longer, so single kana
+// stay big and centered while longer vocab words shrink to fit on one
+// line instead of overflowing the card.
+function sizeCardChar(text) {
+  const len = [...text].length; // count by code point, not UTF-16 unit
+  const scale = len <= 2 ? 1 : 1 + (len - 2) * 0.32;
+  document.getElementById("cardChar").style.setProperty("--char-scale", scale);
+}
+
 // ═══════════════════════════════════════════════════════════════
 //  RENDER
 // ═══════════════════════════════════════════════════════════════
@@ -517,6 +540,7 @@ function applyCard() {
 
   // Front
   document.getElementById("cardChar").textContent = card.front;
+  sizeCardChar(card.front);
 
   // Back
   document.getElementById("backLabel").textContent = card.label || "answer";
