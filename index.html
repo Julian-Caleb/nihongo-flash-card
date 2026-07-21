@@ -121,6 +121,7 @@
     .type-badge.hiragana { background: #E8EFF5; color: #2D5986; }
     .type-badge.katakana { background: #EDF0EC; color: #3A5C30; }
     .type-badge.vocab    { background: #F5EBE8; color: #8C3020; }
+    .type-badge.kanji    { background: #F0EAF5; color: #5A3A8C; }
 
     /* ── Card scene ─────────────────────────────────────────── */
     .card-scene {
@@ -473,7 +474,8 @@
   <div class="mode-pills" id="modePills">
     <button class="mode-pill active" data-mode="all"    >All cards</button>
     <button class="mode-pill"        data-mode="kana"   >Kana only</button>
-    <button class="mode-pill"        data-mode="vocab"  >Vocab only</button>
+    <button class="mode-pill"        data-mode="vocab"  >Vocab kana only</button>
+    <button class="mode-pill"        data-mode="kanji"  >Kanji only</button>
   </div>
 </div>
 
@@ -483,13 +485,14 @@
 
 <script type="module">
 import { HIRAGANA, KATAKANA } from './kana_data.js';
-import { VOCAB } from './vocab_data.js';
+import { VOCAB_KANA } from './vocab_kana_data.js';
+import { KANJI } from './kanji_data.js';
 
 // ═══════════════════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════════════════
 
-let allCards   = [...HIRAGANA, ...KATAKANA, ...VOCAB];
+let allCards   = [...HIRAGANA, ...KATAKANA, ...VOCAB_KANA, ...KANJI];
 let deck       = [...allCards];
 let index      = 0;
 let isFlipped  = false;
@@ -509,8 +512,9 @@ function shuffle(arr) {
 
 function deckForMode(mode) {
   if (mode === "kana")  return [...HIRAGANA, ...KATAKANA];
-  if (mode === "vocab") return [...VOCAB];
-  return [...HIRAGANA, ...KATAKANA, ...VOCAB];
+  if (mode === "vocab") return [...VOCAB_KANA];
+  if (mode === "kanji") return [...KANJI];
+  return [...HIRAGANA, ...KATAKANA, ...VOCAB_KANA, ...KANJI];
 }
 
 // Scale the character box down as the text gets longer, so single kana
@@ -534,7 +538,7 @@ function applyCard() {
 
   // Badge
   const badge = document.getElementById("typeBadge");
-  const badgeText = { hiragana: "Hiragana", katakana: "Katakana", vocab: "Kata" };
+  const badgeText = { hiragana: "Hiragana", katakana: "Katakana", vocab: "Kata", kanji: "Kanji" };
   badge.textContent = badgeText[card.type] || card.type;
   badge.className = "type-badge " + card.type;
 
@@ -543,7 +547,7 @@ function applyCard() {
   sizeCardChar(card.front);
 
   // Back
-  document.getElementById("backLabel").textContent = card.label || "answer";
+  document.getElementById("backLabel").textContent = "answer";
   document.getElementById("cardAnswer").textContent = card.answers[0];
   const alt = card.answers.slice(1);
   document.getElementById("cardAlt").textContent =
