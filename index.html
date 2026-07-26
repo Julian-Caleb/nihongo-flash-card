@@ -479,6 +479,16 @@
   </div>
 </div>
 
+<!-- ── Tag filter (only meaningful for the vocab kana deck) ── -->
+<div class="mode-wrap" id="tagWrap" style="display:none;">
+  <div class="mode-label">type</div>
+  <div class="mode-pills" id="tagPills">
+    <button class="mode-pill active" data-tag="all"       >All</button>
+    <button class="mode-pill"        data-tag="verb"      >Verb</button>
+    <button class="mode-pill"        data-tag="adjective" >Adjective</button>
+  </div>
+</div>
+
 <footer>
   Built for learning Japanese &nbsp;·&nbsp; <span>日本語</span>
 </footer>
@@ -497,6 +507,7 @@ let deck       = [...allCards];
 let index      = 0;
 let isFlipped  = false;
 let currentMode = "all";
+let currentTag  = "all";
 
 // ═══════════════════════════════════════════════════════════════
 //  HELPERS
@@ -515,6 +526,18 @@ function deckForMode(mode) {
   if (mode === "vocab") return [...VOCAB_KANA];
   if (mode === "kanji") return [...KANJI];
   return [...HIRAGANA, ...KATAKANA, ...VOCAB_KANA, ...KANJI];
+}
+
+// Tag filtering currently only applies to vocab kana entries — cards
+// without a `tags` array (kana, katakana, kanji) simply pass through
+// unaffected when the "all" tag filter is active.
+function filterByTag(cards, tag) {
+  if (tag === "all") return cards;
+  return cards.filter(c => Array.isArray(c.tags) && c.tags.includes(tag));
+}
+
+function buildDeck() {
+  return shuffle(filterByTag(deckForMode(currentMode), currentTag));
 }
 
 // Scale the character box down as the text gets longer, so single kana
@@ -648,10 +671,34 @@ function shuffleDeck() {
 function setMode(mode) {
   currentMode = mode;
   // Update pill styles
-  document.querySelectorAll(".mode-pill").forEach(pill => {
+  document.querySelectorAll(".mode-pill[data-mode]").forEach(pill => {
     pill.classList.toggle("active", pill.dataset.mode === mode);
   });
-  deck  = shuffle(deckForMode(mode));
+
+  // Tag filter only makes sense for the vocab kana deck for now.
+  const tagWrap = document.getElementById("tagWrap");
+  if (mode === "vocab") {
+    tagWrap.style.display = "";
+  } else {
+    tagWrap.style.display = "none";
+    currentTag = "all";
+    document.querySelectorAll(".mode-pill[data-tag]").forEach(pill => {
+      pill.classList.toggle("active", pill.dataset.tag === "all");
+    });
+  }
+
+  deck  = buildDeck();
+  index = 0;
+  render();
+  document.getElementById("answerInput").focus();
+}
+
+function setTag(tag) {
+  currentTag = tag;
+  document.querySelectorAll(".mode-pill[data-tag]").forEach(pill => {
+    pill.classList.toggle("active", pill.dataset.tag === tag);
+  });
+  deck  = buildDeck();
   index = 0;
   render();
   document.getElementById("answerInput").focus();
@@ -689,8 +736,12 @@ document.querySelectorAll(".nav-btn").forEach(btn => {
   if (label.startsWith("Next"))    btn.addEventListener("click", nextCard);
 });
 
-document.querySelectorAll(".mode-pill").forEach(pill => {
+document.querySelectorAll(".mode-pill[data-mode]").forEach(pill => {
   pill.addEventListener("click", () => setMode(pill.dataset.mode));
+});
+
+document.querySelectorAll(".mode-pill[data-tag]").forEach(pill => {
+  pill.addEventListener("click", () => setTag(pill.dataset.tag));
 });
 
 // ── Init ────────────────────────────────────────────────────────
