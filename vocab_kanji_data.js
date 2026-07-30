@@ -140,6 +140,175 @@ const KANJI = [
 
   // apa
   { front: "何", answers: ["nani", "nan"] },
+
+  // 明 — terang / fajar
+  { front: "明るい",   answers: ["akarui"] },
+  { front: "明ける",   answers: ["akeru"] },
+
+  // 休 — istirahat / hari libur / gunung berapi tidak aktif
+  { front: "休む",     answers: ["yasumu"] },
+  { front: "休み",     answers: ["yasumi"] },
+  { front: "休日",     answers: ["kyuujitsu"] },
+  { front: "休火山",   answers: ["kyuukazan"] },
+
+  // 体 — tubuh / kekuatan fisik / olahraga
+  { front: "体",       answers: ["karada"] },
+  { front: "体力",     answers: ["tairyoku"] },
+  { front: "体育",     answers: ["taiiku"] },
+
+  // 好 — suka / disukai
+  { front: "好き",     answers: ["suki"] },
+  { front: "好きな",   answers: ["sukina"] },
+  { front: "好かれる", answers: ["sukareru"] },
+
+  // 男 — laki-laki
+  { front: "男",       answers: ["otoko"] },
+  { front: "男子学生", answers: ["danshigakusei"] },
+  { front: "男の子",   answers: ["otokonoko"] },
+
+  // 林 — hutan kecil / kehutanan
+  { front: "林",       answers: ["hayashi"] },
+  { front: "林業",     answers: ["ringyou"] },
+
+  // 森 — hutan
+  { front: "森",       answers: ["mori"] },
+  { front: "森林",     answers: ["shinrin"] },
+
+  // 間 — waktu / jarak
+  { front: "間",       answers: ["aida"] },
+  { front: "一年間",   answers: ["ichinenkan"] },
+  { front: "間に合う", answers: ["maniau"] },
+  { front: "時間",     answers: ["jikan"] },
+
+  // 畑 — ladang
+  { front: "畑",       answers: ["hatake"] },
+  { front: "田畑",     answers: ["tahata"] },
+
+  // 岩 — batu besar / pegunungan berbatu
+  // NOTE: "gansaki" (岩崎) adalah nama keluarga; "batuan" yang benar adalah 岩石 (ganseki)
+  { front: "岩",       answers: ["iwa"] },
+  { front: "岩石",     answers: ["ganseki"] },
+  { front: "岩山",     answers: ["iwayama"] },
+
+  // 目 — mata / daftar isi / atasan / tujuan
+  // NOTE: "mekuji" dalam sumber kemungkinan salah ketik; yang benar adalah 目次 mokuji
+  { front: "目",       answers: ["me"] },
+  { front: "目次",     answers: ["mokuji"] },
+  { front: "目上",     answers: ["meue"] },
+  { front: "目的",     answers: ["mokuteki"] },
+
+  // 耳 — telinga / THT
+  { front: "耳",       answers: ["mimi"] },
+  { front: "耳鼻科",   answers: ["jibika"] },
+
+  // 手 — tangan / surat / ahli / tidak ahli / perangko / asisten
+  { front: "手",       answers: ["te"] },
+  { front: "上手な",   answers: ["jouzuna"] },
+  { front: "手紙",     answers: ["tegami"] },
+  { front: "下手な",   answers: ["hetana"] },
+  { front: "切手",     answers: ["kitte"] },
+  { front: "助手",     answers: ["joshu"] },
+
+  // 足 — kaki / sepasang / cukup / kurang
+  { front: "足",       answers: ["ashi"] },
+  { front: "二足",     answers: ["nisoku"] },
+  { front: "足りる",   answers: ["tariru"] },
+  { front: "不足",     answers: ["fusoku"] },
+
+  // 雨 — hujan
+  { front: "雨",       answers: ["ame"] },
+  { front: "雨天",     answers: ["uten"] },
+  { front: "大雨",     answers: ["ooame"] },
+  { front: "小雨",     answers: ["koame"] },
+  { front: "雨水",     answers: ["amamizu"] },
+
+  // 竹 — bambu
+  { front: "竹",       answers: ["take"] },
+  { front: "竹の子",   answers: ["takenoko"] },
+
+  // 米 — beras / Amerika
+  { front: "米",       answers: ["kome"] },
+  { front: "米国",     answers: ["beikoku"] },
+  { front: "北米",     answers: ["hokubei"] },
+  { front: "南米",     answers: ["nanbei"] },
+  { front: "中米",     answers: ["chuubei"] },
+
+  // 貝 — kerang
+  { front: "貝",       answers: ["kai"] },
+  { front: "貝殻",     answers: ["kaigara"] },
+
+  // 石 — batu / minyak / fosil
+  { front: "石",       answers: ["ishi"] },
+  { front: "石油",     answers: ["sekiyu"] },
+  { front: "化石",     answers: ["kaseki"] },
+
+  // 糸 — benang / benang wol
+  { front: "糸",       answers: ["ito"] },
+  { front: "毛糸",     answers: ["keito"] },
+
+  // 花 — bunga
+  { front: "花",         answers: ["hana"] },
+  { front: "花瓶",       answers: ["kabin"] },
+  { front: "花火",       answers: ["hanabi"] },
+  { front: "桜の花",     answers: ["sakuranohana"] },
+  { front: "花屋",       answers: ["hanaya"] },
+
+  // 茶 — teh / kafe
+  { front: "お茶",       answers: ["ocha"] },
+  { front: "日本茶",     answers: ["nihoncha"] },
+  { front: "喫茶店",     answers: ["kissaten"] },
+  { front: "紅茶",       answers: ["koucha"] },
+
+  // 肉 — daging
+  { front: "肉",         answers: ["niku"] },
+  { front: "鶏肉",       answers: ["toriniku"] },
+  { front: "牛肉",       answers: ["gyuuniku"] },
+  { front: "肉体",       answers: ["nikutai"] },
+  { front: "肉屋",       answers: ["nikuya"] },
+  { front: "豚肉",       answers: ["butaniku"] },
+  { front: "馬肉",       answers: ["baniku"] },
+
+  // 文 — kalimat / sastra
+  { front: "文",         answers: ["bun"] },
+  { front: "文部省",     answers: ["monbushou"] },
+  { front: "文学",       answers: ["bungaku"] },
+
+  // 字 / 文字 — huruf / karakter
+  { front: "字",         answers: ["ji"] },
+  { front: "漢字",       answers: ["kanji"] },
+  { front: "文字",       answers: ["moji", "monji"] },
+
+  // 物 — benda / makhluk
+  { front: "物",         answers: ["mono"] },
+  { front: "生物",       answers: ["seibutsu"] },
+  // NOTE: "Shibutsugaku" dalam sumber adalah typo; yang benar adalah seibutsugaku (生物学)
+  { front: "生物学",     answers: ["seibutsugaku"] },
+  { front: "買い物",     answers: ["kaimono"] },
+  { front: "荷物",       answers: ["nimotsu"] },
+  { front: "本物",       answers: ["honmono"] },
+
+  // 牛 — sapi / susu / daging sapi
+  { front: "牛",         answers: ["ushi"] },
+  { front: "牛乳",       answers: ["gyuunyuu"] },
+
+  // 馬 — kuda
+  { front: "馬",         answers: ["uma"] },
+  { front: "馬車",       answers: ["basha"] },
+  { front: "馬力",       answers: ["bariki"] },
+  { front: "子馬",       answers: ["kouma"] },
+
+  // 鳥 — burung / ayam
+  { front: "鳥",         answers: ["tori"] },
+  { front: "白鳥",       answers: ["hakuchou"] },
+  { front: "焼き鳥",     answers: ["yakitori"] },
+  { front: "野鳥",       answers: ["yachou"] },
+  { front: "小鳥",       answers: ["kotori"] },
+
+  // 魚 — ikan
+  { front: "魚",         answers: ["sakana"] },
+  { front: "魚屋",       answers: ["sakanaya"] },
+  { front: "焼き魚",     answers: ["yakizakana"] },
+  { front: "金魚",       answers: ["kingyo"] },
 ].map(c => ({ ...c, type: "kanji" }));
 
 export { KANJI };
