@@ -75,6 +75,66 @@
       text-transform: uppercase;
     }
 
+    /* ── Score bar ─────────────────────────────────────────── */
+    .score-bar {
+      width: 100%;
+      max-width: 640px;
+      padding: 10px 24px 0;
+      display: flex;
+      gap: 10px;
+    }
+    .score-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      border: 1.5px solid;
+      transition: background 0.2s, color 0.2s;
+    }
+    .score-chip.correct {
+      background: #F0F5F1;
+      border-color: #A8C8AE;
+      color: #3A6B45;
+    }
+    .score-chip.correct.lit {
+      background: #D6EDD9;
+      border-color: var(--sage);
+    }
+    .score-chip.wrong {
+      background: #F8F0F0;
+      border-color: #DDB0B0;
+      color: #8C3020;
+    }
+    .score-chip.wrong.lit {
+      background: #FAD8D8;
+      border-color: var(--vermillion);
+    }
+    .score-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.6;
+    }
+    .score-reset {
+      margin-left: auto;
+      background: none;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.72rem;
+      color: var(--ink-ghost);
+      cursor: pointer;
+      padding: 4px 0;
+      letter-spacing: 0.04em;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .score-reset:hover { color: var(--ink-soft); }
+
     /* ── Progress bar ───────────────────────────────────────── */
     .progress-wrap {
       width: 100%;
@@ -222,12 +282,43 @@
       text-align: center;
       font-style: italic;
     }
+    .card-meaning {
+      margin-top: 10px;
+      font-size: 1rem;
+      font-weight: 400;
+      color: var(--ink-soft);
+      text-align: center;
+      font-family: 'Inter', sans-serif;
+    }
+    .card-meaning-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-ghost);
+      margin-top: 16px;
+    }
 
     /* ── Input row ──────────────────────────────────────────── */
     .input-row {
       display: flex;
       width: 100%;
       gap: 10px;
+    }
+    /* Two-input layout for kanji mode */
+    .input-stack {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      gap: 8px;
+    }
+    .input-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-ghost);
+      margin-bottom: -2px;
     }
     .answer-input {
       flex: 1;
@@ -397,6 +488,19 @@
   <span class="header-count" id="headerCount">1 / 1</span>
 </header>
 
+<!-- ── Score ── -->
+<div class="score-bar">
+  <div class="score-chip correct" id="chipCorrect">
+    <div class="score-dot"></div>
+    <span id="scoreCorrect">0</span> Benar
+  </div>
+  <div class="score-chip wrong" id="chipWrong">
+    <div class="score-dot"></div>
+    <span id="scoreWrong">0</span> Salah
+  </div>
+  <button class="score-reset" id="scoreResetBtn">Reset</button>
+</div>
+
 <!-- ── Progress ── -->
 <div class="progress-wrap">
   <div class="progress-bar">
@@ -422,22 +526,44 @@
         <div class="card-reading-label" id="backLabel">reading</div>
         <div class="card-reading" id="cardAnswer">a</div>
         <div class="card-alt-answers" id="cardAlt"></div>
+        <div class="card-meaning-label" id="meaningLabel" style="display:none">artinya</div>
+        <div class="card-meaning" id="cardMeaning" style="display:none"></div>
       </div>
     </div>
   </div>
 
-  <!-- Input -->
-  <div class="input-row">
-    <input
-      class="answer-input"
-      id="answerInput"
-      type="text"
-      placeholder="type your answer…"
-      autocomplete="off"
-      autocorrect="off"
-      autocapitalize="none"
-      spellcheck="false"
-    />
+  <!-- Input — single field (kana/vocab) or two fields (kanji) -->
+  <div class="input-row" id="inputRow">
+    <div class="input-stack" id="inputStack">
+      <!-- romaji input (always shown) -->
+      <div>
+        <div class="input-label" id="romajiLabel" style="display:none">Romaji</div>
+        <input
+          class="answer-input"
+          id="answerInput"
+          type="text"
+          placeholder="type your answer…"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="none"
+          spellcheck="false"
+        />
+      </div>
+      <!-- meaning input (kanji only) -->
+      <div id="meaningInputWrap" style="display:none">
+        <div class="input-label">Artinya (Indonesia)</div>
+        <input
+          class="answer-input"
+          id="meaningInput"
+          type="text"
+          placeholder="arti dalam bahasa Indonesia…"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="none"
+          spellcheck="false"
+        />
+      </div>
+    </div>
     <button class="check-btn" id="checkBtn" >Check</button>
   </div>
 
@@ -508,10 +634,29 @@ let index      = 0;
 let isFlipped  = false;
 let currentMode = "all";
 let currentTag  = "all";
+let scoreCorrect = 0;
+let scoreWrong   = 0;
 
 // ═══════════════════════════════════════════════════════════════
 //  HELPERS
 // ═══════════════════════════════════════════════════════════════
+
+function updateScore() {
+  document.getElementById("scoreCorrect").textContent = scoreCorrect;
+  document.getElementById("scoreWrong").textContent   = scoreWrong;
+
+  // Brief "lit" flash to draw attention to whichever chip just changed
+  const chipC = document.getElementById("chipCorrect");
+  const chipW = document.getElementById("chipWrong");
+  chipC.classList.toggle("lit", scoreCorrect > 0);
+  chipW.classList.toggle("lit", scoreWrong   > 0);
+}
+
+function resetScore() {
+  scoreCorrect = 0;
+  scoreWrong   = 0;
+  updateScore();
+}
 
 function shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
@@ -558,6 +703,7 @@ function applyCard() {
   // card face is guaranteed to be front-facing (no ongoing flip animation).
   const card = deck[index];
   const cardEl = document.getElementById("card");
+  const isKanji = card.type === "kanji";
 
   // Badge
   const badge = document.getElementById("typeBadge");
@@ -569,12 +715,32 @@ function applyCard() {
   document.getElementById("cardChar").textContent = card.front;
   sizeCardChar(card.front);
 
-  // Back
-  document.getElementById("backLabel").textContent = "answer";
+  // Back — romaji reading
+  document.getElementById("backLabel").textContent = isKanji ? "Romaji" : "answer";
   document.getElementById("cardAnswer").textContent = card.answers[0];
   const alt = card.answers.slice(1);
   document.getElementById("cardAlt").textContent =
     alt.length ? "also: " + alt.join(", ") : "";
+
+  // Back — meaning (kanji only)
+  const meaningLabel = document.getElementById("meaningLabel");
+  const cardMeaning  = document.getElementById("cardMeaning");
+  if (isKanji && card.meaning && card.meaning.length > 0) {
+    cardMeaning.textContent = card.meaning[0];
+    const altMeaning = card.meaning.slice(1);
+    if (altMeaning.length) cardMeaning.textContent += " / " + altMeaning.join(" / ");
+    meaningLabel.style.display = "";
+    cardMeaning.style.display  = "";
+  } else {
+    meaningLabel.style.display = "none";
+    cardMeaning.style.display  = "none";
+  }
+
+  // Input row — show second input + labels only for kanji cards
+  document.getElementById("meaningInputWrap").style.display = isKanji ? "" : "none";
+  document.getElementById("romajiLabel").style.display      = isKanji ? "" : "none";
+  document.getElementById("answerInput").placeholder =
+    isKanji ? "romaji (contoh: nihon)…" : "type your answer…";
 
   // Progress
   const pct = deck.length > 1 ? (index / (deck.length - 1)) * 100 : 100;
@@ -612,6 +778,10 @@ function clearInput() {
   input.value = "";
   input.className = "answer-input";
   input.disabled = false;
+  const meaning = document.getElementById("meaningInput");
+  meaning.value = "";
+  meaning.className = "answer-input";
+  meaning.disabled = false;
   const fb = document.getElementById("feedback");
   fb.textContent = "";
   fb.className = "feedback hidden";
@@ -627,25 +797,70 @@ function flipCard() {
 }
 
 function checkAnswer() {
-  const input   = document.getElementById("answerInput");
-  const fb      = document.getElementById("feedback");
-  const guess   = input.value.trim().toLowerCase();
-  if (!guess) return;
+  const input      = document.getElementById("answerInput");
+  const meaningInput = document.getElementById("meaningInput");
+  const fb         = document.getElementById("feedback");
+  const card       = deck[index];
+  const isKanji    = card.type === "kanji";
 
-  const card    = deck[index];
-  // Accept if guess matches ANY of the answers (case-insensitive, trimmed)
-  const correct = card.answers.some(a => a.trim().toLowerCase() === guess);
+  const romajiGuess  = input.value.trim().toLowerCase();
+  if (!romajiGuess) return;
 
+  // For kanji: both romaji AND meaning must be answered
+  if (isKanji) {
+    const meaningGuess = meaningInput.value.trim().toLowerCase();
+    if (!meaningGuess) {
+      // Romaji filled but meaning empty — prompt for meaning
+      meaningInput.focus();
+      fb.textContent = "Isi juga artinya!";
+      fb.className   = "feedback wrong";
+      return;
+    }
+
+    const romajiOk  = card.answers.some(a => a.trim().toLowerCase() === romajiGuess);
+    const meaningOk = card.meaning.some(m => m.trim().toLowerCase() === meaningGuess);
+
+    if (romajiOk && meaningOk) {
+      input.className        = "answer-input correct";
+      meaningInput.className = "answer-input correct";
+      fb.textContent = "Benar! ✓";
+      fb.className   = "feedback correct";
+      scoreCorrect++;
+      updateScore();
+    } else {
+      // Mark each field individually so user knows which one was wrong
+      input.className        = romajiOk  ? "answer-input correct" : "answer-input wrong";
+      meaningInput.className = meaningOk ? "answer-input correct" : "answer-input wrong";
+      const romajiAll  = card.answers.join(" / ");
+      const meaningAll = card.meaning.join(" / ");
+      const parts = [];
+      if (!romajiOk)  parts.push(`Romaji: ${romajiAll}`);
+      if (!meaningOk) parts.push(`Arti: ${meaningAll}`);
+      fb.textContent = "Salah. " + parts.join("  |  ");
+      fb.className   = "feedback wrong";
+      scoreWrong++;
+      updateScore();
+    }
+    if (!isFlipped) flipCard();
+    return;
+  }
+
+  // Non-kanji: single answer check (original behaviour)
+  const correct = card.answers.some(a => a.trim().toLowerCase() === romajiGuess);
   if (correct) {
     input.className = "answer-input correct";
     fb.textContent  = "Benar! ✓";
     fb.className    = "feedback correct";
+    scoreCorrect++;
+    updateScore();
     if (!isFlipped) flipCard();
   } else {
     input.className = "answer-input wrong";
     const all = card.answers.join(" / ");
     fb.textContent  = `Salah. Jawaban: ${all}`;
     fb.className    = "feedback wrong";
+    scoreWrong++;
+    updateScore();
     if (!isFlipped) flipCard();
   }
 }
@@ -727,7 +942,11 @@ document.addEventListener("keydown", e => {
 
 // ── Wire up all event listeners (required for type="module" scope) ──
 document.getElementById("card").addEventListener("click", flipCard);
+document.getElementById("scoreResetBtn").addEventListener("click", resetScore);
 document.getElementById("checkBtn").addEventListener("click", checkAnswer);
+document.getElementById("meaningInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") checkAnswer();
+});
 
 document.querySelectorAll(".nav-btn").forEach(btn => {
   const label = btn.textContent.trim();
