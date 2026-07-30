@@ -904,6 +904,7 @@ function setMode(mode) {
 
   deck  = buildDeck();
   index = 0;
+  resetScore();
   render();
   document.getElementById("answerInput").focus();
 }
@@ -915,27 +916,34 @@ function setTag(tag) {
   });
   deck  = buildDeck();
   index = 0;
+  resetScore();
   render();
   document.getElementById("answerInput").focus();
 }
 
 // ── Keyboard shortcuts ──────────────────────────────────────────
 document.addEventListener("keydown", e => {
-  // Enter on input → check; Enter elsewhere → next
+  const active = document.activeElement;
+  const onRomaji  = active === document.getElementById("answerInput");
+  const onMeaning = active === document.getElementById("meaningInput");
+
   if (e.key === "Enter") {
-    const input = document.getElementById("answerInput");
-    if (document.activeElement === input) {
+    if (onRomaji || onMeaning) {
+      // Either answer field → check
       checkAnswer();
-    } else {
+    } else if (isFlipped) {
+      // Card already revealed → advance to next
       nextCard();
     }
+    // Card not yet revealed and not on an input → do nothing
     return;
   }
-  if (e.key === " " && document.activeElement.tagName !== "INPUT") {
+  if (e.key === " " && active.tagName !== "INPUT") {
     e.preventDefault();
     flipCard();
     return;
   }
+  // Arrow keys always navigate (consistent with prev/next buttons)
   if (e.key === "ArrowRight") nextCard();
   if (e.key === "ArrowLeft")  prevCard();
 });
